@@ -1,15 +1,17 @@
 
 import React, { useState } from 'react';
+import { BrowserRouter as Router, Routes, Route, Link, useNavigate, useLocation } from 'react-router-dom';
 import { STUDENT_MOCK, DISCIPLINES_MOCK, DIPLOMA_VERIFICATION_MOCK } from './constants';
 
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
-type ViewType = 'dashboard' | 'historico' | 'verificacao';
-
-const App: React.FC = () => {
+const AppContent: React.FC = () => {
   const [showChat, setShowChat] = useState(false);
-  const [currentView, setCurrentView] = useState<ViewType>('dashboard');
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const isPortalRoute = location.pathname.startsWith('/portal');
 
   const handleDownloadHistory = () => {
     const doc = new jsPDF();
@@ -158,7 +160,7 @@ const App: React.FC = () => {
             Baixar Diploma
           </a>
           <button
-            onClick={() => setCurrentView('verificacao')}
+            onClick={() => navigate('/')}
             className="bg-[#00796a] hover:bg-teal-800 text-white px-5 py-3 rounded text-xs font-bold uppercase transition-colors shadow-sm flex items-center justify-center gap-2 whitespace-nowrap"
           >
             <i className="fa-solid fa-qrcode text-lg"></i>
@@ -209,7 +211,7 @@ const App: React.FC = () => {
         <ServiceCard
           title="Histórico escolar"
           icon={<i className="fa-solid fa-list-check"></i>}
-          onClick={() => setCurrentView('historico')}
+          onClick={() => navigate('/portal/historico')}
           highlight
         />
         <ServiceCard title="Atestado de matrícula" icon={<i className="fa-solid fa-file-invoice"></i>} />
@@ -227,7 +229,7 @@ const App: React.FC = () => {
       <div className="bg-white shadow-md rounded-sm overflow-hidden border border-gray-200">
         <div className="p-4 border-b border-gray-200 bg-gray-50 flex justify-between items-center">
           <h1 className="text-xl font-black lato text-gray-800 tracking-tight uppercase">HISTÓRICO ESCOLAR</h1>
-          <button onClick={() => setCurrentView('dashboard')} className="text-gray-400 hover:text-gray-600 text-xl font-bold p-1">×</button>
+          <button onClick={() => navigate('/portal')} className="text-gray-400 hover:text-gray-600 text-xl font-bold p-1">×</button>
         </div>
         <div className="p-6">
           <div className="grid grid-cols-1 md:grid-cols-[150px_1fr] gap-y-3 mb-8 text-sm">
@@ -238,7 +240,7 @@ const App: React.FC = () => {
           </div>
 
           <div className="flex flex-wrap gap-3 mb-10 border-t border-gray-100 pt-6">
-            <button onClick={() => setCurrentView('dashboard')} className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-6 py-2.5 rounded text-xs font-bold uppercase transition-colors">
+            <button onClick={() => navigate('/portal')} className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-6 py-2.5 rounded text-xs font-bold uppercase transition-colors">
               {'<< Voltar ao Menu'}
             </button>
             <button onClick={handleDownloadHistory} className="bg-[#42a5f5] hover:bg-[#1e88e5] text-white px-6 py-2.5 rounded text-xs font-bold uppercase transition-colors shadow-sm flex items-center gap-2">
@@ -442,108 +444,118 @@ const App: React.FC = () => {
 
       {/* Botão Voltar */}
       <div className="flex justify-center mb-12">
-        <button
-          onClick={() => setCurrentView('dashboard')}
-          className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-8 py-3 rounded-lg text-xs font-bold uppercase transition-colors flex items-center gap-2"
-        >
-          <i className="fa-solid fa-arrow-left"></i>
-          Voltar ao Portal
-        </button>
+        {isPortalRoute && (
+          <button
+            onClick={() => navigate('/portal')}
+            className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-8 py-3 rounded-lg text-xs font-bold uppercase transition-colors flex items-center gap-2"
+          >
+            <i className="fa-solid fa-arrow-left"></i>
+            Voltar ao Portal
+          </button>
+        )}
       </div>
     </div>
   );
 
   return (
     <div className="min-h-screen bg-[#f4f7f6] flex flex-col relative overflow-x-hidden">
-      {/* Navbar Replicated from HTML */}
-      <nav className="bg-white border-b border-gray-200 px-4 md:px-12 py-3 flex items-center justify-between sticky top-0 z-50 shadow-sm">
-        <div className="flex items-center gap-6">
-          <div className="md:hidden text-gray-600 cursor-pointer p-2">
-            <i className="fa fa-bars fa-lg"></i>
-          </div>
-          <img
-            src="https://estudantesuam.ead.br/__shared/img/especifico/anima-v1/uam/logo.png"
-            alt="UAM Logo"
-            className="h-10 object-contain cursor-pointer"
-            onClick={() => setCurrentView('dashboard')}
-          />
-          <div className="hidden lg:flex items-center gap-6 text-sm font-medium text-gray-600">
-            <button onClick={() => setCurrentView('dashboard')} className="hover:text-[#00796a] transition-colors border-b-2 border-transparent hover:border-[#00796a] pb-1">Portal do Estudante</button>
-            <div className="relative group">
-              <button className="flex items-center gap-1 hover:text-[#00796a]">Serviços <i className="fa-solid fa-chevron-down text-[10px]"></i></button>
+      {/* Navbar Replicated from HTML - Only shown in Portal */}
+      {isPortalRoute && (
+        <nav className="bg-white border-b border-gray-200 px-4 md:px-12 py-3 flex items-center justify-between sticky top-0 z-50 shadow-sm">
+          <div className="flex items-center gap-6">
+            <div className="md:hidden text-gray-600 cursor-pointer p-2">
+              <i className="fa fa-bars fa-lg"></i>
             </div>
-            <a href="#" className="hover:text-[#00796a]">Central de Ajuda</a>
-          </div>
-        </div>
-        <div className="flex items-center gap-5">
-          <div className="relative cursor-pointer hover:scale-110 transition-transform">
-            <i className="fa-regular fa-bell text-gray-500 text-xl"></i>
-            <span className="absolute -top-1 -right-1 bg-red-600 text-white text-[9px] font-bold rounded-full w-4 h-4 flex items-center justify-center">0</span>
-          </div>
-          <div className="flex items-center gap-3 cursor-pointer group">
-            <div className="text-right hidden sm:block leading-tight">
-              <p className="text-[11px] text-gray-500 font-bold uppercase">Lucas Borges</p>
-              <p className="text-[10px] text-gray-400">RA: 2022240707</p>
-            </div>
-            <div className="w-9 h-9 rounded-full bg-gray-100 border border-gray-200 flex items-center justify-center text-gray-400 group-hover:bg-teal-50 transition-colors">
-              <i className="fa fa-user text-lg"></i>
+            <img
+              src="https://estudantesuam.ead.br/__shared/img/especifico/anima-v1/uam/logo.png"
+              alt="UAM Logo"
+              className="h-10 object-contain cursor-pointer"
+              onClick={() => navigate('/portal')}
+            />
+            <div className="hidden lg:flex items-center gap-6 text-sm font-medium text-gray-600">
+              <button onClick={() => navigate('/portal')} className="hover:text-[#00796a] transition-colors border-b-2 border-transparent hover:border-[#00796a] pb-1">Portal do Estudante</button>
+              <div className="relative group">
+                <button className="flex items-center gap-1 hover:text-[#00796a]">Serviços <i className="fa-solid fa-chevron-down text-[10px]"></i></button>
+              </div>
+              <a href="#" className="hover:text-[#00796a]">Central de Ajuda</a>
             </div>
           </div>
-        </div>
-      </nav>
+          <div className="flex items-center gap-5">
+            <div className="relative cursor-pointer hover:scale-110 transition-transform">
+              <i className="fa-regular fa-bell text-gray-500 text-xl"></i>
+              <span className="absolute -top-1 -right-1 bg-red-600 text-white text-[9px] font-bold rounded-full w-4 h-4 flex items-center justify-center">0</span>
+            </div>
+            <div className="flex items-center gap-3 cursor-pointer group">
+              <div className="text-right hidden sm:block leading-tight">
+                <p className="text-[11px] text-gray-500 font-bold uppercase">Lucas Borges</p>
+                <p className="text-[10px] text-gray-400">RA: 2022240707</p>
+              </div>
+              <div className="w-9 h-9 rounded-full bg-gray-100 border border-gray-200 flex items-center justify-center text-gray-400 group-hover:bg-teal-50 transition-colors">
+                <i className="fa fa-user text-lg"></i>
+              </div>
+            </div>
+          </div>
+        </nav>
+      )}
 
       {/* Main Content Area */}
       <main className="flex-1 p-4 md:p-10 max-w-7xl mx-auto w-full">
-        {currentView === 'dashboard' ? renderDashboard() : currentView === 'historico' ? renderHistorico() : renderVerificacao()}
+        <Routes>
+          <Route path="/" element={renderVerificacao()} />
+          <Route path="/portal" element={renderDashboard()} />
+          <Route path="/portal/historico" element={renderHistorico()} />
+        </Routes>
       </main>
 
-      {/* Fale Conosco UI Replicated */}
-      <div className="fixed bottom-6 right-6 z-[60]">
-        {!showChat ? (
-          <button
-            onClick={() => setShowChat(true)}
-            className="bg-white border-2 border-[#00796a] rounded-full px-5 py-2.5 flex items-center gap-3 shadow-xl hover:shadow-2xl transition-all hover:-translate-y-1 active:scale-95 group"
-          >
-            <i className="fa-regular fa-comments text-[#00796a] text-xl group-hover:scale-110 transition-transform"></i>
-            <span className="text-[#00796a] font-black text-xs uppercase tracking-wide">Fale conosco</span>
-          </button>
-        ) : (
-          <div className="w-[320px] bg-white shadow-2xl rounded-2xl border border-gray-100 overflow-hidden animate__animated animate__slideInUp animate__faster">
-            <div className="bg-[#00796a] text-white p-5 flex flex-col items-center relative">
-              <button
-                onClick={() => setShowChat(false)}
-                className="absolute top-4 right-4 text-white/70 hover:text-white"
-              >
-                <i className="fa fa-times"></i>
-              </button>
-              <span className="text-xl font-black uppercase tracking-wider">Fale conosco</span>
-              <span className="text-[11px] font-medium opacity-80 mt-1">Segunda a sexta-feira</span>
-              <div className="text-[10px] text-center mt-4 opacity-90 leading-relaxed bg-black/10 p-2 rounded w-full">
-                <p>Suporte geral: 8h às 19h30</p>
-                <p>Trancamento: 8h às 18h</p>
+      {/* Fale Conosco UI Replicated - Only shown in Portal */}
+      {isPortalRoute && (
+        <div className="fixed bottom-6 right-6 z-[60]">
+          {!showChat ? (
+            <button
+              onClick={() => setShowChat(true)}
+              className="bg-white border-2 border-[#00796a] rounded-full px-5 py-2.5 flex items-center gap-3 shadow-xl hover:shadow-2xl transition-all hover:-translate-y-1 active:scale-95 group"
+            >
+              <i className="fa-regular fa-comments text-[#00796a] text-xl group-hover:scale-110 transition-transform"></i>
+              <span className="text-[#00796a] font-black text-xs uppercase tracking-wide">Fale conosco</span>
+            </button>
+          ) : (
+            <div className="w-[320px] bg-white shadow-2xl rounded-2xl border border-gray-100 overflow-hidden animate__animated animate__slideInUp animate__faster">
+              <div className="bg-[#00796a] text-white p-5 flex flex-col items-center relative">
+                <button
+                  onClick={() => setShowChat(false)}
+                  className="absolute top-4 right-4 text-white/70 hover:text-white"
+                >
+                  <i className="fa fa-times"></i>
+                </button>
+                <span className="text-xl font-black uppercase tracking-wider">Fale conosco</span>
+                <span className="text-[11px] font-medium opacity-80 mt-1">Segunda a sexta-feira</span>
+                <div className="text-[10px] text-center mt-4 opacity-90 leading-relaxed bg-black/10 p-2 rounded w-full">
+                  <p>Suporte geral: 8h às 19h30</p>
+                  <p>Trancamento: 8h às 18h</p>
+                </div>
+              </div>
+              <div className="p-8 flex flex-col items-center text-center">
+                <p className="text-[11px] text-gray-500 font-bold mb-1">Salve nos seus contatos!</p>
+                <p className="font-black text-[#00796a] text-lg mb-6 hover:underline cursor-pointer tracking-tight">+55 (11) 4007-1192</p>
+
+                <div className="bg-green-50 p-4 rounded-full mb-4 cursor-pointer hover:bg-green-100 transition-colors">
+                  <img
+                    src="https://estudantesuam.ead.br/__shared/img/whatsapp.svg"
+                    alt="WhatsApp"
+                    className="w-10"
+                  />
+                </div>
+
+                <span className="font-black text-gray-700 text-[13px] leading-tight">Atendimento exclusivo<br /><span className="text-[#00796a]">via WhatsApp</span></span>
+
+                <button className="mt-8 bg-[#00796a] text-white text-xs font-black py-3 px-10 rounded-full hover:bg-teal-800 transition-all uppercase tracking-widest shadow-md">
+                  Iniciar Chat
+                </button>
               </div>
             </div>
-            <div className="p-8 flex flex-col items-center text-center">
-              <p className="text-[11px] text-gray-500 font-bold mb-1">Salve nos seus contatos!</p>
-              <p className="font-black text-[#00796a] text-lg mb-6 hover:underline cursor-pointer tracking-tight">+55 (11) 4007-1192</p>
-
-              <div className="bg-green-50 p-4 rounded-full mb-4 cursor-pointer hover:bg-green-100 transition-colors">
-                <img
-                  src="https://estudantesuam.ead.br/__shared/img/whatsapp.svg"
-                  alt="WhatsApp"
-                  className="w-10"
-                />
-              </div>
-
-              <span className="font-black text-gray-700 text-[13px] leading-tight">Atendimento exclusivo<br /><span className="text-[#00796a]">via WhatsApp</span></span>
-
-              <button className="mt-8 bg-[#00796a] text-white text-xs font-black py-3 px-10 rounded-full hover:bg-teal-800 transition-all uppercase tracking-widest shadow-md">
-                Iniciar Chat
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };
@@ -567,5 +579,13 @@ const ServiceCard: React.FC<{ title: string, icon: React.ReactNode, onClick?: ()
     <span className="text-sm font-bold text-gray-600 group-hover:text-[#00796a] leading-tight uppercase tracking-tight">{title}</span>
   </div>
 );
+
+const App: React.FC = () => {
+  return (
+    <Router>
+      <AppContent />
+    </Router>
+  );
+};
 
 export default App;
